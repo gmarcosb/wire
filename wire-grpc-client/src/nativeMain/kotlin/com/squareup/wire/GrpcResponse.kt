@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Square, Inc.
+ * Copyright (C) 2026 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,22 @@
  */
 package com.squareup.wire
 
-internal actual class GrpcResponse {
+import okio.IOException
+
+internal actual class GrpcResponse(
+  val headers: Map<String, String>,
+  val trailersMap: Map<String, String>,
+  val responseBody: GrpcResponseBody?,
+) {
   actual val body: GrpcResponseBody?
-    get() = TODO("Not yet implemented")
+    get() = responseBody
 
-  actual fun header(
-    name: String,
-    defaultValue: String?,
-  ): String? {
-    TODO("Not yet implemented")
-  }
+  actual fun header(name: String, defaultValue: String?): String? = headers[name] ?: defaultValue
 
-  actual fun trailers(): GrpcHeaders = TODO("Not yet implemented")
+  @Throws(IOException::class)
+  actual fun trailers(): GrpcHeaders = GrpcHeaders(trailersMap)
 
   actual fun close() {
-    TODO("Not yet implemented")
+    // Nothing to close
   }
 }

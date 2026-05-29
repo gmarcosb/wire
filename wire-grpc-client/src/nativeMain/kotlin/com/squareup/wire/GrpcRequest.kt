@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Square, Inc.
+ * Copyright (C) 2026 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,39 @@
  */
 package com.squareup.wire
 
-actual class GrpcRequest
+actual class GrpcRequest(
+  val url: GrpcHttpUrl,
+  val method: String,
+  val headers: Map<String, String>,
+  val body: GrpcRequestBody?,
+)
 
 actual open class GrpcRequestBuilder {
-  actual open fun url(url: GrpcHttpUrl): GrpcRequestBuilder = TODO("Not yet implemented")
+  private var url: GrpcHttpUrl? = null
+  private var method: String = "POST"
+  private var headers: MutableMap<String, String> = mutableMapOf()
+  private var body: GrpcRequestBody? = null
+
+  actual open fun url(url: GrpcHttpUrl): GrpcRequestBuilder = apply {
+    this.url = url
+  }
   actual open fun addHeader(
     name: String,
     value: String,
-  ): GrpcRequestBuilder = TODO("Not yet implemented")
+  ): GrpcRequestBuilder = apply {
+    this.headers[name] = value
+  }
   actual open fun method(
     method: String,
     body: GrpcRequestBody?,
-  ): GrpcRequestBuilder = TODO("Not yet implemented")
-  actual open fun build(): GrpcRequest = TODO("Not yet implemented")
+  ): GrpcRequestBuilder = apply {
+    this.method = method
+    this.body = body
+  }
+  actual open fun build(): GrpcRequest = GrpcRequest(
+    url = url ?: throw IllegalArgumentException("url is required"),
+    method = method,
+    headers = headers,
+    body = body,
+  )
 }

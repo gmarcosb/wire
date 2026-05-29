@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Square, Inc.
+ * Copyright (C) 2026 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,51 @@
  */
 package com.squareup.wire
 
-actual abstract class GrpcClient {
+import com.squareup.wire.internal.NativeGrpcCall
+import okio.Timeout
+
+interface NativeGrpcTransport {
+  suspend fun execute(
+    url: String,
+    requestMetadata: Map<String, String>,
+    requestMessage: ByteArray,
+    timeout: Timeout,
+  ): NativeGrpcResponse
+}
+
+class NativeGrpcResponse(
+  val status: Int,
+  val responseMetadata: Map<String, String>,
+  val responseMessage: ByteArray?,
+  val grpcStatus: Int,
+  val grpcMessage: String?,
+  val grpcStatusDetails: ByteArray?,
+)
+
+actual abstract class GrpcClient actual constructor() {
   actual abstract fun <S : Any, R : Any> newCall(method: GrpcMethod<S, R>): GrpcCall<S, R>
   actual abstract fun <S : Any, R : Any> newStreamingCall(method: GrpcMethod<S, R>): GrpcStreamingCall<S, R>
   actual abstract fun <S : Any, R : Any> newClientStreamingCall(method: GrpcMethod<S, R>): GrpcClientStreamingCall<S, R>
   actual abstract fun <S : Any, R : Any> newServerStreamingCall(method: GrpcMethod<S, R>): GrpcServerStreamingCall<S, R>
+}
+
+class WireNativeGrpcClient(
+  val transport: NativeGrpcTransport,
+  val baseUrl: GrpcHttpUrl,
+  val minMessageToCompress: Long = 0L,
+) : GrpcClient() {
+
+  override fun <S : Any, R : Any> newCall(method: GrpcMethod<S, R>): GrpcCall<S, R> = NativeGrpcCall(this, method)
+
+  override fun <S : Any, R : Any> newStreamingCall(method: GrpcMethod<S, R>): GrpcStreamingCall<S, R> {
+    TODO("Streaming calls are not fully supported natively yet.")
+  }
+
+  override fun <S : Any, R : Any> newClientStreamingCall(method: GrpcMethod<S, R>): GrpcClientStreamingCall<S, R> {
+    TODO("Streaming calls are not fully supported natively yet.")
+  }
+
+  override fun <S : Any, R : Any> newServerStreamingCall(method: GrpcMethod<S, R>): GrpcServerStreamingCall<S, R> {
+    TODO("Streaming calls are not fully supported natively yet.")
+  }
 }

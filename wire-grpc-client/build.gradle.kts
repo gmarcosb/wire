@@ -44,6 +44,11 @@ kotlin {
         api(libs.kotlin.coroutines.core)
       }
     }
+    val jsMain by getting {
+      dependencies {
+        api(libs.ktor.client.core)
+      }
+    }
     val jvmMain by getting {
       dependencies {
         api(libs.okhttp.core)

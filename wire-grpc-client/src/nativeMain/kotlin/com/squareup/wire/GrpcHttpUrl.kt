@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Square, Inc.
+ * Copyright (C) 2026 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 package com.squareup.wire
 
-actual class GrpcHttpUrl {
-  actual fun resolve(link: String): GrpcHttpUrl? = TODO("Not yet implemented")
+actual class GrpcHttpUrl(val url: String) {
+  actual fun resolve(link: String): GrpcHttpUrl? = if (link.startsWith("/")) {
+    GrpcHttpUrl(url + link)
+  } else {
+    GrpcHttpUrl("$url/$link")
+  }
 }
 
-actual fun String.toHttpUrl(): GrpcHttpUrl = TODO("Not yet implemented")
+actual fun String.toHttpUrl(): GrpcHttpUrl = GrpcHttpUrl(this)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Square, Inc.
+ * Copyright (C) 2026 Square, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  */
 package com.squareup.wire
 
-actual class GrpcHeaders {
-  actual operator fun get(name: String): String? = TODO()
+actual class GrpcHeaders(private val headers: Map<String, String>) {
+  actual operator fun get(name: String): String? = headers[name]
 }

@@ -37,14 +37,14 @@ class KtorGrpcClient(
   override fun <S : Any, R : Any> newCall(method: GrpcMethod<S, R>): GrpcCall<S, R> = KtorGrpcCall(this, method)
 
   override fun <S : Any, R : Any> newStreamingCall(method: GrpcMethod<S, R>): GrpcStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported by all Ktor engines yet.")
+    throw UnsupportedOperationException("Bidirectional streaming is not supported by Ktor engines yet.")
   }
 
   override fun <S : Any, R : Any> newClientStreamingCall(method: GrpcMethod<S, R>): GrpcClientStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported by all Ktor engines yet.")
+    throw UnsupportedOperationException("Client streaming is not supported by Ktor engines yet.")
   }
 
   override fun <S : Any, R : Any> newServerStreamingCall(method: GrpcMethod<S, R>): GrpcServerStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported by all Ktor engines yet.")
+    return com.squareup.wire.internal.KtorGrpcServerStreamingCall(this, method)
   }
 }

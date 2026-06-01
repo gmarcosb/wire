@@ -84,6 +84,63 @@ public class SwiftNioGrpcTransport: NativeGrpcTransport {
         }
     }
 
+    public func executeServerStreaming(
+        url: String,
+        requestMetadata: [String : String],
+        requestMessage: WireGrpcClient.KotlinByteArray,
+        timeout: WireGrpcClient.Timeout,
+        responseHandler: NativeGrpcStreamingResponseHandler
+    ) {
+        var customHeaders = HPACKHeaders()
+        for (key, value) in requestMetadata {
+            customHeaders.add(name: key, value: value)
+        }
+
+        let callOptions = CallOptions(customMetadata: customHeaders)
+
+        guard let urlObj = URL(string: url) else {
+            responseHandler.onFailure(error: KotlinThrowable(message: "Invalid URL"))
+            return
+        }
+
+        let path = urlObj.path
+        let requestData = Data(requestMessage.toByteArray())
+
+        let call = channel.makeServerStreamingCall(
+            path: path,
+            request: requestData,
+            callOptions: callOptions
+        ) { responseData in
+            responseHandler.onMessage(message: WireGrpcClient.KotlinByteArray(data: responseData))
+        }
+
+        call.initialMetadata.whenComplete { result in
+            switch result {
+            case .success(let headers):
+                var headerMap = [String: String]()
+                for header in headers {
+                    headerMap[header.name] = header.value
+                }
+                responseHandler.onHeaders(metadata: headerMap)
+            case .failure(let error):
+                responseHandler.onFailure(error: KotlinThrowable(message: error.localizedDescription))
+            }
+        }
+
+        call.status.whenComplete { result in
+            switch result {
+            case .success(let status):
+                if status.code != .ok {
+                    responseHandler.onFailure(error: KotlinThrowable(message: status.message ?? "Unknown gRPC Error"))
+                } else {
+                    responseHandler.onClosed()
+                }
+            case .failure(let error):
+                responseHandler.onFailure(error: KotlinThrowable(message: error.localizedDescription))
+            }
+        }
+    }
+
     deinit {
         try? channel.close().wait()
         try? group.syncShutdownGracefully()

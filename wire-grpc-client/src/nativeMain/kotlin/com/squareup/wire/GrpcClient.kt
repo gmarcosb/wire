@@ -25,6 +25,21 @@ interface NativeGrpcTransport {
     requestMessage: ByteArray,
     timeout: Timeout,
   ): NativeGrpcResponse
+
+  suspend fun executeServerStreaming(
+    url: String,
+    requestMetadata: Map<String, String>,
+    requestMessage: ByteArray,
+    timeout: Timeout,
+    responseHandler: NativeGrpcStreamingResponseHandler,
+  )
+}
+
+interface NativeGrpcStreamingResponseHandler {
+  fun onHeaders(metadata: Map<String, String>)
+  fun onMessage(message: ByteArray)
+  fun onFailure(error: Throwable)
+  fun onClosed()
 }
 
 class NativeGrpcResponse(
@@ -52,14 +67,14 @@ class WireNativeGrpcClient(
   override fun <S : Any, R : Any> newCall(method: GrpcMethod<S, R>): GrpcCall<S, R> = NativeGrpcCall(this, method)
 
   override fun <S : Any, R : Any> newStreamingCall(method: GrpcMethod<S, R>): GrpcStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported natively yet.")
+    throw UnsupportedOperationException("Bidirectional streaming is not supported natively yet.")
   }
 
   override fun <S : Any, R : Any> newClientStreamingCall(method: GrpcMethod<S, R>): GrpcClientStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported natively yet.")
+    throw UnsupportedOperationException("Client streaming is not supported natively yet.")
   }
 
   override fun <S : Any, R : Any> newServerStreamingCall(method: GrpcMethod<S, R>): GrpcServerStreamingCall<S, R> {
-    TODO("Streaming calls are not fully supported natively yet.")
+    return com.squareup.wire.internal.NativeGrpcServerStreamingCall(this, method)
   }
 }
